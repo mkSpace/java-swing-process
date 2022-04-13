@@ -1,5 +1,8 @@
 package ui;
 
+import di.Injection;
+import extensions.Print;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -12,12 +15,15 @@ public class SettingDialog extends JDialog {
     private final JPanel numberOfEquationPanel = new JPanel(new FlowLayout());
     private final JButton okButton = new JButton("확인");
 
+    private final MainViewModel viewModel = Injection.provideMainViewModel();
+
     public SettingDialog(JFrame owner, String title) {
         super(owner, title);
         setLayout(new GridLayout(3, 1));
         setupViews();
         setSize(new Dimension(DIALOG_WIDTH, DIALOG_HEIGHT));
         setLocationRelativeTo(null);
+        Print.println("[SettingDialog] MainViewModel : " + viewModel.hashCode());
     }
 
     private void setupViews() {
@@ -31,7 +37,19 @@ public class SettingDialog extends JDialog {
         numberOfEquationPanel.add(numberOfEquationInputText);
         numberOfEquationPanel.add(numberOfEquationTextField);
 
-        okButton.addActionListener(e -> setVisible(false));
+        okButton.addActionListener(e -> {
+            int boundedBufferSize = 0;
+            int equalitySize = 0;
+            try {
+                boundedBufferSize = Integer.parseInt(boundedBufferTextField.getText());
+                equalitySize = Integer.parseInt(numberOfEquationTextField.getText());
+            } catch (NumberFormatException error) {
+                error.printStackTrace();
+            }
+            viewModel.setBoundedBufferSize(boundedBufferSize);
+            viewModel.setEqualitySize(equalitySize);
+            setVisible(false);
+        });
 
         add(boundedBufferPanel);
         add(numberOfEquationPanel);

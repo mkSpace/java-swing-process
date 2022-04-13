@@ -1,7 +1,13 @@
 package ui;
 
+import di.Injection;
+import extensions.Print;
+import io.reactivex.disposables.CompositeDisposable;
+
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 import static java.awt.FlowLayout.CENTER;
 
@@ -10,6 +16,10 @@ public class MainView implements View {
     private static final int MAIN_FRAME_WIDTH = 1280;
     private static final int MAIN_FRAME_HEIGHT = 720;
     private static final int WIDGET_MARGIN = 12;
+
+    private final MainViewModel viewModel = Injection.provideMainViewModel();
+
+    private final CompositeDisposable disposables = new CompositeDisposable();
 
     private final JFrame mainFrame;
     private final JPanel topPanel;
@@ -28,6 +38,14 @@ public class MainView implements View {
         middlePanel = new JPanel();
         bottomPanel = new JPanel();
         dialog = new SettingDialog(mainFrame, "Setting");
+        mainFrame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                super.windowClosed(e);
+                disposables.clear();
+                disposables.dispose();
+            }
+        });
     }
 
     @Override
@@ -37,11 +55,15 @@ public class MainView implements View {
         setupMiddlePanel();
         setupBottomPanel();
         setupMainFrame();
+        bindViewModels();
     }
 
     @Override
     public void bindViewModels() {
-
+        disposables.add(
+                viewModel.getBoundedBufferSize()
+                        .subscribe(integer -> Print.println("[bindViewModels] boundedBufferSize: " + integer))
+        );
     }
 
     private void setupMainFrame() {
