@@ -1,0 +1,40 @@
+package ui;
+
+import javax.swing.*;
+import java.awt.*;
+
+public class SettingDialog extends JDialog {
+
+    private static final int DIALOG_WIDTH = 300;
+    private static final int DIALOG_HEIGHT = 125;
+
+    private final JPanel boundedBufferPanel = new JPanel(new FlowLayout());
+    private final JPanel numberOfEquationPanel = new JPanel(new FlowLayout());
+    private final JButton okButton = new JButton("확인");
+
+    public SettingDialog(JFrame owner, String title) {
+        super(owner, title);
+        setLayout(new GridLayout(3, 1));
+        setupViews();
+        setSize(new Dimension(DIALOG_WIDTH, DIALOG_HEIGHT));
+        setLocationRelativeTo(null);
+    }
+
+    private void setupViews() {
+        JLabel boundedBufferInputText = new JLabel("Bounded Buffer 크기 : ");
+        JTextField boundedBufferTextField = new JTextField(5);
+        boundedBufferPanel.add(boundedBufferInputText);
+        boundedBufferPanel.add(boundedBufferTextField);
+
+        JLabel numberOfEquationInputText = new JLabel("Equation 발생 횟수 : ");
+        JTextField numberOfEquationTextField = new JTextField(5);
+        numberOfEquationPanel.add(numberOfEquationInputText);
+        numberOfEquationPanel.add(numberOfEquationTextField);
+
+        okButton.addActionListener(e -> setVisible(false));
+
+        add(boundedBufferPanel);
+        add(numberOfEquationPanel);
+        add(okButton);
+    }
+}
