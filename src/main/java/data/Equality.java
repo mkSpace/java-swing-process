@@ -1,10 +1,8 @@
 package data;
 
-import extensions.Print;
 import io.reactivex.annotations.NonNull;
 
 import java.util.*;
-import java.util.function.Consumer;
 
 public class Equality {
 
@@ -15,19 +13,15 @@ public class Equality {
     private final Character[] operators;
 
     private Equality(@NonNull int[] params, @NonNull Character[] operators) {
-        Print.println("params.size : " + params.length + " operators.size : " + operators.length);
         this.params = Arrays.stream(params).limit(MAX_PARAMS_COUNT).toArray();
         this.operators = Arrays.stream(operators).limit(MAX_OPERATORS_COUNT).toArray(value -> new Character[operators.length]);
-        Print.println("params.size : " + this.params.length + " operators.size : " + this.operators.length);
     }
 
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < params.length; i++) {
-            if (i != 0) {
-                builder.append(operators[i - 1]);
-            }
+            if (i != 0) builder.append(operators[i - 1]);
             builder.append(params[i]);
         }
         return builder.toString();
@@ -40,7 +34,43 @@ public class Equality {
         if (operators.length != params.length - 1) {
             throw new IllegalStateException("Operators' length mush equal params.length - 1");
         }
-        // 후위 표기법으로 변경
+        List<String> postfix = alignToPrefix();
+        Stack<String> calculator = new Stack<>();
+        postfix.forEach(s -> {
+            switch (s) {
+                case "+": {
+                    double right = Double.parseDouble(calculator.pop());
+                    double left = Double.parseDouble(calculator.pop());
+                    calculator.push(String.valueOf(left + right));
+                    break;
+                }
+                case "-": {
+                    double right = Double.parseDouble(calculator.pop());
+                    double left = Double.parseDouble(calculator.pop());
+                    calculator.push(String.valueOf(left - right));
+                    break;
+                }
+                case "*": {
+                    double right = Double.parseDouble(calculator.pop());
+                    double left = Double.parseDouble(calculator.pop());
+                    calculator.push(String.valueOf(left * right));
+                    break;
+                }
+                case "/": {
+                    double right = Double.parseDouble(calculator.pop());
+                    double left = Double.parseDouble(calculator.pop());
+                    calculator.push(String.valueOf(left / right));
+                    break;
+                }
+                default:
+                    calculator.push(s);
+                    break;
+            }
+        });
+        return Double.parseDouble(calculator.pop());
+    }
+
+    private List<String> alignToPrefix() {
         List<String> postfix = new ArrayList<>();
         Stack<Character> tempOperators = new Stack<>();
         for (int i = 0; i < params.length; i++) {
@@ -62,36 +92,7 @@ public class Equality {
         }
         tempOperators.sort(this::isBiggerThan);
         while (!tempOperators.isEmpty()) postfix.add(String.valueOf(tempOperators.pop()));
-        postfix.forEach(new Consumer<String>() {
-            @Override
-            public void accept(String s) {
-                Print.print(s);
-            }
-        });
-        Print.println("");
-        Stack<String> calculator = new Stack<>();
-        postfix.forEach(s -> {
-            if (s.equals("+")) {
-                double right = Double.parseDouble(calculator.pop());
-                double left = Double.parseDouble(calculator.pop());
-                calculator.push(String.valueOf(left + right));
-            } else if (s.equals("-")) {
-                double right = Double.parseDouble(calculator.pop());
-                double left = Double.parseDouble(calculator.pop());
-                calculator.push(String.valueOf(left - right));
-            } else if (s.equals("*")) {
-                double right = Double.parseDouble(calculator.pop());
-                double left = Double.parseDouble(calculator.pop());
-                calculator.push(String.valueOf(left * right));
-            } else if (s.equals("/")) {
-                double right = Double.parseDouble(calculator.pop());
-                double left = Double.parseDouble(calculator.pop());
-                calculator.push(String.valueOf(left / right));
-            } else {
-                calculator.push(s);
-            }
-        });
-        return Double.parseDouble(calculator.pop());
+        return postfix;
     }
 
     private int isBiggerThan(char left, char right) {
