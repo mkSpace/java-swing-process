@@ -11,20 +11,11 @@ public class Equality {
 
     private final int[] params;
     private final Character[] operators;
+    private static final Random random = new Random();
 
     private Equality(@NonNull int[] params, @NonNull Character[] operators) {
         this.params = Arrays.stream(params).limit(MAX_PARAMS_COUNT).toArray();
         this.operators = Arrays.stream(operators).limit(MAX_OPERATORS_COUNT).toArray(value -> new Character[operators.length]);
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < params.length; i++) {
-            if (i != 0) builder.append(operators[i - 1]);
-            builder.append(params[i]);
-        }
-        return builder.toString();
     }
 
     public double calculate() {
@@ -70,6 +61,32 @@ public class Equality {
         return Double.parseDouble(calculator.pop());
     }
 
+    public int[] getParams() {
+        return params;
+    }
+
+    public Character[] getOperators() {
+        return operators;
+    }
+
+    public int getParamsSize() {
+        return params.length;
+    }
+
+    public int getOperatorsSize() {
+        return operators.length;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < params.length; i++) {
+            if (i != 0) builder.append(operators[i - 1]);
+            builder.append(params[i]);
+        }
+        return builder.toString();
+    }
+
     private List<String> alignToPrefix() {
         List<String> postfix = new ArrayList<>();
         Stack<Character> tempOperators = new Stack<>();
@@ -102,8 +119,6 @@ public class Equality {
             return 1;
         } else return -1;
     }
-
-    private static final Random random = new Random();
 
     public static Equality create() {
         int paramSize = Math.abs(random.nextInt()) % 4 + 3;
