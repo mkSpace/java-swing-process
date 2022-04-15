@@ -1,7 +1,6 @@
 package ui;
 
 import di.Injection;
-import extensions.Print;
 import io.reactivex.disposables.CompositeDisposable;
 
 import javax.swing.*;
@@ -32,6 +31,13 @@ public class MainView implements View {
 
     private final JDialog dialog;
 
+    private JList<String> producerList;
+    private DefaultListModel<String> producerCache = new DefaultListModel<>();
+    private DefaultListModel<String> consumerCache = new DefaultListModel<>();
+    private JList<String> consumerList;
+    private JList<String> boundedBufferList;
+
+
     public MainView() {
         mainFrame = new JFrame("App");
         topPanel = new JPanel();
@@ -61,8 +67,43 @@ public class MainView implements View {
     @Override
     public void bindViewModels() {
         disposables.add(
-                viewModel.getBoundedBufferSize()
-                        .subscribe(integer -> Print.println("[bindViewModels] boundedBufferSize: " + integer))
+                viewModel.getProducerListData()
+                        .subscribe(listWithPivot -> {
+                            DefaultListModel<String> list = listWithPivot.first;
+                            int pivot = listWithPivot.second;
+                            if (producerCache.isEmpty() || pivot == 0) {
+                                producerCache = list;
+                                producerList.setModel(producerCache);
+                            } else if (!list.isEmpty() && pivot < list.size()) {
+                                producerCache.set(pivot, list.get(pivot));
+                            }
+                        })
+        );
+
+        disposables.add(
+                viewModel.getConsumerListData()
+                        .subscribe(listWithPivot -> {
+                            DefaultListModel<String> list = listWithPivot.first;
+                            int pivot = listWithPivot.second;
+                            if (consumerCache.isEmpty() || pivot == 0) {
+                                consumerCache = list;
+                                consumerList.setModel(consumerCache);
+                            } else if (!list.isEmpty()&& pivot < list.size()) {
+                                consumerCache.set(pivot, list.get(pivot));
+                            }
+                        })
+        );
+
+        disposables.add(
+                viewModel.getBoundedBufferListData()
+                        .subscribe(list -> {
+                            if (list != null) boundedBufferList.setModel(list);
+                        })
+        );
+
+        disposables.add(
+                viewModel.getAlertMessage()
+                        .subscribe(message -> JOptionPane.showMessageDialog(null, message, "알림", JOptionPane.INFORMATION_MESSAGE))
         );
     }
 
@@ -111,35 +152,32 @@ public class MainView implements View {
         middlePanel.setBackground(Color.gray);
         middlePanel.setSize(MAIN_FRAME_WIDTH, middlePanelHeight);
         middlePanel.setLayout(new GridLayout(1, 3));
-        DefaultListModel<String> sample = new DefaultListModel<>();
-        sample.addElement("Jaemin");
-        sample.addElement("Jaemin2");
-        sample.addElement("Jaemin3");
-        JList<DefaultListModel<String>> list1 = new JList(sample);
-        JScrollPane scrollPane = new JScrollPane();
+        producerList = new JList<>();
         Font font = new Font("sans-serif", Font.PLAIN, 16);
-        list1.setFont(font);
-        JList list2 = new JList(sample);
-        list2.setFont(font);
-        JScrollPane scrollPane2 = new JScrollPane();
-        JList list3 = new JList(sample);
-        list3.setFont(font);
-        JScrollPane scrollPane3 = new JScrollPane();
+        producerList.setFont(font);
+        consumerList = new JList<>();
+        consumerList.setFont(font);
+        boundedBufferList = new JList<>();
+        boundedBufferList.setFont(font);
         Dimension listDimension = new Dimension(MAIN_FRAME_WIDTH / 3, middlePanelHeight);
-        list1.setPreferredSize(listDimension);
-        list2.setPreferredSize(listDimension);
-        list3.setPreferredSize(listDimension);
-        list1.setFocusable(false);
-        list1.setDragEnabled(false);
-        scrollPane.getViewport().add(list1);
-        scrollPane2.getViewport().add(list2);
-        scrollPane3.getViewport().add(list3);
-        scrollPane.setPreferredSize(listDimension);
-        scrollPane2.setPreferredSize(listDimension);
-        scrollPane3.setPreferredSize(listDimension);
-        middlePanel.add(scrollPane);
-        middlePanel.add(scrollPane2);
-        middlePanel.add(scrollPane3);
+        producerList.setFocusable(false);
+        producerList.setCellRenderer(new SimpleListCellRenderer());
+        consumerList.setCellRenderer(new SimpleListCellRenderer());
+        boundedBufferList.setCellRenderer(new BoundedBufferListCellRenderer());
+        producerList.setDragEnabled(false);
+        consumerList.setDragEnabled(false);
+        consumerList.setDragEnabled(false);
+        boundedBufferList.setDragEnabled(false);
+        boundedBufferList.setDragEnabled(false);
+        JScrollPane producerScrollPane = new JScrollPane(producerList);
+        JScrollPane bufferScrollPane = new JScrollPane(boundedBufferList);
+        JScrollPane consumerScrollPane = new JScrollPane(consumerList);
+        producerScrollPane.setPreferredSize(listDimension);
+        bufferScrollPane.setPreferredSize(listDimension);
+        consumerScrollPane.setPreferredSize(listDimension);
+        middlePanel.add(producerScrollPane);
+        middlePanel.add(bufferScrollPane);
+        middlePanel.add(consumerScrollPane);
     }
 
     private void setupBottomPanel() {
@@ -158,6 +196,14 @@ public class MainView implements View {
         startButton.setPreferredSize(buttonDimension);
         initializationButton.setPreferredSize(buttonDimension);
         settingButton.setPreferredSize(buttonDimension);
+        startButton.addActionListener(e -> viewModel.start());
+        initializationButton.addActionListener(e -> {
+            try {
+                viewModel.init();
+            } catch (InterruptedException ex) {
+                ex.printStackTrace();
+            }
+        });
         settingButton.addActionListener(e -> dialog.setVisible(true));
     }
 }

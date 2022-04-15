@@ -125,7 +125,7 @@ public class Equality {
         int[] params = new int[paramSize];
         Character[] operators = new Character[paramSize - 1];
         for (int i = 0; i < paramSize; i++) {
-            params[i] = random.nextInt() % 100;
+            params[i] = Math.abs(random.nextInt()) % 100 + 1;
         }
         for (int i = 0; i < paramSize - 1; i++) {
             int rand = random.nextInt() % 4;

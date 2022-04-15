@@ -1,7 +1,6 @@
 package ui;
 
 import di.Injection;
-import extensions.Print;
 
 import javax.swing.*;
 import java.awt.*;
@@ -23,7 +22,6 @@ public class SettingDialog extends JDialog {
         setupViews();
         setSize(new Dimension(DIALOG_WIDTH, DIALOG_HEIGHT));
         setLocationRelativeTo(null);
-        Print.println("[SettingDialog] MainViewModel : " + viewModel.hashCode());
     }
 
     private void setupViews() {
@@ -46,6 +44,8 @@ public class SettingDialog extends JDialog {
             } catch (NumberFormatException error) {
                 error.printStackTrace();
             }
+            boundedBufferTextField.setText("");
+            numberOfEquationTextField.setText("");
             viewModel.setBoundedBufferSize(boundedBufferSize);
             viewModel.setEqualitySize(equalitySize);
             setVisible(false);
