@@ -1,5 +1,6 @@
 package data;
 
+import extensions.Print;
 import io.reactivex.Flowable;
 import io.reactivex.processors.BehaviorProcessor;
 
@@ -21,6 +22,7 @@ public class BoundedBuffer {
     public void writeEquality(Equality equality) {
         if (producerPivot >= bufferArray.length) producerPivot = 0;
         bufferArray[producerPivot++] = new EqualityAndFlag(equality, EqualityState.WRITE);
+        Print.println("[WRITE]" + Thread.currentThread().getName());
         emitNewEquality();
     }
 
@@ -31,9 +33,10 @@ public class BoundedBuffer {
         } else {
             prevPivot = consumerPivot - 1;
         }
-        if(bufferArray[prevPivot] != null) {
+        if (bufferArray[prevPivot] != null) {
             bufferArray[prevPivot].setState(EqualityState.NONE);
         }
+        Print.println("[READ] " + Thread.currentThread().getName());
         emitNewEquality();
         if (consumerPivot >= bufferArray.length) consumerPivot = 0;
         bufferArray[consumerPivot].setState(EqualityState.READ);

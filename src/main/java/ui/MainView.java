@@ -1,7 +1,10 @@
 package ui;
 
 import di.Injection;
+import extensions.Print;
+import io.reactivex.Scheduler;
 import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.schedulers.Schedulers;
 
 import javax.swing.*;
 import java.awt.*;
@@ -68,9 +71,11 @@ public class MainView implements View {
     public void bindViewModels() {
         disposables.add(
                 viewModel.getProducerListData()
+                        .observeOn(Schedulers.computation())
                         .subscribe(listWithPivot -> {
                             DefaultListModel<String> list = listWithPivot.first;
                             int pivot = listWithPivot.second;
+                            Print.println("[UI] : " + Thread.currentThread().getName());
                             if (producerCache.isEmpty() || pivot == 0) {
                                 producerCache = list;
                                 producerList.setModel(producerCache);
@@ -82,6 +87,7 @@ public class MainView implements View {
 
         disposables.add(
                 viewModel.getConsumerListData()
+                        .observeOn(Schedulers.computation())
                         .subscribe(listWithPivot -> {
                             DefaultListModel<String> list = listWithPivot.first;
                             int pivot = listWithPivot.second;
@@ -96,6 +102,7 @@ public class MainView implements View {
 
         disposables.add(
                 viewModel.getBoundedBufferListData()
+                        .observeOn(Schedulers.computation())
                         .subscribe(list -> {
                             if (list != null) boundedBufferList.setModel(list);
                         })
@@ -103,6 +110,7 @@ public class MainView implements View {
 
         disposables.add(
                 viewModel.getAlertMessage()
+                        .observeOn(Schedulers.computation())
                         .subscribe(message -> JOptionPane.showMessageDialog(null, message, "알림", JOptionPane.INFORMATION_MESSAGE))
         );
     }
