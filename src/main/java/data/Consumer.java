@@ -1,7 +1,5 @@
 package data;
 
-import extensions.Print;
-
 import java.util.function.Function;
 
 public class Consumer extends Thread {
